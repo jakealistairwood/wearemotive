@@ -237,6 +237,25 @@ export type Page = {
     crop?: SanityImageCrop;
     _type: "image";
   };
+  seo?: Seo;
+};
+
+export type Seo = {
+  _type: "seo";
+  title?: string;
+  description?: string;
+  image?: {
+    asset?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+    };
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    _type: "image";
+  };
+  noIndex?: boolean;
 };
 
 export type Post = {
@@ -449,11 +468,11 @@ export type SanityImageMetadata = {
   isOpaque?: boolean;
 };
 
-export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | SplitImage | Hero | Features | Faqs | Faq | PageBuilder | SiteSettings | Page | Post | Author | Category | Slug | BlockContent | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata;
+export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityFileAsset | Geopoint | SplitImage | Hero | Features | Faqs | Faq | PageBuilder | SiteSettings | Page | Seo | Post | Author | Category | Slug | BlockContent | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./src/sanity/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "siteSettings"][0]{        homePage->{            ...,            content[]{                ...,                _type == "faqs" => {                    ...,                    faqs[]->                }            }        }    }
+// Query: *[_id == "siteSettings"][0]{        homePage->{            ...,            content[]{                ...,                _type == "faqs" => {                    ...,                    faqs[]->{                        _id,                        title,                        body,                        "text": pt::text(body)                    }                }            }        }    }
 export type HOME_PAGE_QUERYResult = {
   homePage: null;
 } | {
@@ -471,12 +490,8 @@ export type HOME_PAGE_QUERYResult = {
       title?: string;
       faqs: Array<{
         _id: string;
-        _type: "faq";
-        _createdAt: string;
-        _updatedAt: string;
-        _rev: string;
-        title?: string;
-        body?: Array<{
+        title: string | null;
+        body: Array<{
           children?: Array<{
             marks?: Array<string>;
             text?: string;
@@ -505,7 +520,8 @@ export type HOME_PAGE_QUERYResult = {
           alt?: string;
           _type: "image";
           _key: string;
-        }>;
+        }> | null;
+        text: string;
       }> | null;
     } | {
       _key: string;
@@ -590,10 +606,11 @@ export type HOME_PAGE_QUERYResult = {
       crop?: SanityImageCrop;
       _type: "image";
     };
+    seo?: Seo;
   } | null;
 } | null;
 // Variable: PAGE_QUERY
-// Query: *[_type == "page" && slug.current == $slug][0]{        ...,        content[]{            ...,            _type == "faqs" => {                ...,                faqs[]->            }        }    }
+// Query: *[_type == "page" && slug.current == $slug][0]{        ...,        "seo": {            "title": coalesce(seo.title, title, ""),            "description": coalesce(seo.description,  ""),            "image": seo.image,            "noIndex": seo.noIndex == true        },        content[]{            ...,            _type == "faqs" => {                ...,                faqs[]->{                    _id,                    title,                    body,                    "text": pt::text(body)                }            }        }    }
 export type PAGE_QUERYResult = {
   _id: string;
   _type: "page";
@@ -608,12 +625,8 @@ export type PAGE_QUERYResult = {
     title?: string;
     faqs: Array<{
       _id: string;
-      _type: "faq";
-      _createdAt: string;
-      _updatedAt: string;
-      _rev: string;
-      title?: string;
-      body?: Array<{
+      title: string | null;
+      body: Array<{
         children?: Array<{
           marks?: Array<string>;
           text?: string;
@@ -642,7 +655,8 @@ export type PAGE_QUERYResult = {
         alt?: string;
         _type: "image";
         _key: string;
-      }>;
+      }> | null;
+      text: string;
     }> | null;
   } | {
     _key: string;
@@ -727,6 +741,22 @@ export type PAGE_QUERYResult = {
     crop?: SanityImageCrop;
     _type: "image";
   };
+  seo: {
+    title: string | "";
+    description: string | "";
+    image: {
+      asset?: {
+        _ref: string;
+        _type: "reference";
+        _weak?: boolean;
+        [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+      };
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    } | null;
+    noIndex: boolean | false;
+  };
 } | null;
 // Variable: POSTS_QUERY
 // Query: *[_type == "post" && defined(slug.current)][0...12]{    _id, title, slug}
@@ -736,7 +766,7 @@ export type POSTS_QUERYResult = Array<{
   slug: Slug | null;
 }>;
 // Variable: POST_QUERY
-// Query: *[_type == "post" && slug.current == $slug][0]{    title, body, mainImage  }
+// Query: *[_type == "post" && slug.current == $slug][0]{    title, body, mainImage}
 export type POST_QUERYResult = {
   title: string | null;
   body: Array<{
@@ -782,14 +812,21 @@ export type POST_QUERYResult = {
     _type: "image";
   } | null;
 } | null;
+// Variable: SITEMAP_QUERY
+// Query: *[_type in ["page", "post"] && defined(slug.current)] {        "href": select(            _type == "page" => "/" + slug.current,            _type == "post" => "/posts/" + slug.current,            slug.current        ),        _updatedAt    }
+export type SITEMAP_QUERYResult = Array<{
+  href: string | null;
+  _updatedAt: string;
+}>;
 
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    "\n    *[_id == \"siteSettings\"][0]{\n        homePage->{\n            ...,\n            content[]{\n                ...,\n                _type == \"faqs\" => {\n                    ...,\n                    faqs[]->\n                }\n            }\n        }\n    }\n": HOME_PAGE_QUERYResult;
-    "\n    *[_type == \"page\" && slug.current == $slug][0]{\n        ...,\n        content[]{\n            ...,\n            _type == \"faqs\" => {\n                ...,\n                faqs[]->\n            }\n        }\n    }\n": PAGE_QUERYResult;
+    "\n    *[_id == \"siteSettings\"][0]{\n        homePage->{\n            ...,\n            content[]{\n                ...,\n                _type == \"faqs\" => {\n                    ...,\n                    faqs[]->{\n                        _id,\n                        title,\n                        body,\n                        \"text\": pt::text(body)\n                    }\n                }\n            }\n        }\n    }\n": HOME_PAGE_QUERYResult;
+    "\n    *[_type == \"page\" && slug.current == $slug][0]{\n        ...,\n        \"seo\": {\n            \"title\": coalesce(seo.title, title, \"\"),\n            \"description\": coalesce(seo.description,  \"\"),\n            \"image\": seo.image,\n            \"noIndex\": seo.noIndex == true\n        },\n        content[]{\n            ...,\n            _type == \"faqs\" => {\n                ...,\n                faqs[]->{\n                    _id,\n                    title,\n                    body,\n                    \"text\": pt::text(body)\n                }\n            }\n        }\n    }\n": PAGE_QUERYResult;
     "*[_type == \"post\" && defined(slug.current)][0...12]{\n    _id, title, slug\n}": POSTS_QUERYResult;
-    "*[_type == \"post\" && slug.current == $slug][0]{\n    title, body, mainImage\n  }": POST_QUERYResult;
+    "*[_type == \"post\" && slug.current == $slug][0]{\n    title, body, mainImage\n}": POST_QUERYResult;
+    "\n    *[_type in [\"page\", \"post\"] && defined(slug.current)] {\n        \"href\": select(\n            _type == \"page\" => \"/\" + slug.current,\n            _type == \"post\" => \"/posts/\" + slug.current,\n            slug.current\n        ),\n        _updatedAt\n    }\n": SITEMAP_QUERYResult;
   }
 }

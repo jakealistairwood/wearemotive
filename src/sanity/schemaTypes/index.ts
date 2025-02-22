@@ -12,7 +12,8 @@ import { faqsType } from './blocks/faqsType'
 import { featuresType } from './blocks/featuresType'
 import { heroType } from './blocks/heroType'
 import { splitImageType } from './blocks/splitImageType'
+import { seoType } from './seoType'
 
 export const schema: { types: SchemaTypeDefinition[] } = {
-  types: [blockContentType, categoryType, postType, authorType, siteSettingsType, pageType, pageBuilderType, faqType, faqsType, featuresType, heroType, splitImageType],
+  types: [blockContentType, categoryType, postType, authorType, siteSettingsType, pageType, pageBuilderType, faqType, faqsType, featuresType, heroType, splitImageType, seoType],
 }
