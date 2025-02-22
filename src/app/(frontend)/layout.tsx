@@ -27,7 +27,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <section>
+    <section className={`${geistMono.variable} ${geistSans.variable}`}>
         <header>Navbar</header>
         {children}
         <SanityLive />
